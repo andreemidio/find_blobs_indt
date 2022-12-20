@@ -1,4 +1,7 @@
 import glob
+import json
+import os
+from datetime import datetime
 from typing import List, Tuple, Union
 
 import cv2
@@ -60,14 +63,10 @@ def find_min_x_axis(centroids: List[Tuple[int, int]]) -> List[int]:
     return resultado
 
 
-def main() -> None:
-    file_image: str = "images/4x14x187.bmp"
-    # file_image: str = "images/6x20x198.bmp"
-    list_images: list = glob.glob("images/*.bmp")
+def main(images_list: List[str], view: bool = False) -> None:
+    images_list.sort()
 
-    list_images.sort()
-
-    for file_image in list_images:
+    for file_image in images_list:
 
         r = read_image(file=file_image)
         ret, image_thresh = threshold(image=r)
@@ -87,18 +86,64 @@ def main() -> None:
         for row in m:
             cv2.circle(d, row, 1, (0, 255, 0), 2)
 
-        print(f"Imagem {file_image}")
+        resultado_object = dict(
+            file_name=file_image,
+            first_line=len(contours[0]),
+            first_column=len(f),
+            total=len(contours)
+        )
+        image_name = file_image.split("/")[-1].split(".")[-2]
+        datetime_value = datetime.now().strftime("%d_%m_%y_%H_%M_%S")
+        with open(f"resultados/{image_name}_resultado_leitura_{datetime_value}.json", "w",
+                  encoding='utf-8') as f:
+            json.dump(resultado_object, f, ensure_ascii=False, indent=4)
 
-        print(f"Primeira linha há {len(contours[0])} contornos hachurados ")
-
-        print(f"Primeira coluna  há {len(f)} contornos hachurados ")
-
-        print(f"Há um total de  {len(contours)} área hachuradas")
-
-        cv2.imshow("test", d)
-        cv2.imshow("not", i)
-        cv2.waitKey(0)
+        if view:
+            cv2.imshow("test", d)
+            cv2.imshow("not", i)
+            cv2.waitKey(0)
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    ext = ['png', 'jpg', 'gif', 'bmp']
+
+    if not os.path.exists("resultados") :
+        os.mkdir("resultados")
+
+
+    parser = argparse.ArgumentParser(description='OMR Images')
+
+    parser.add_argument('--image', type=str)
+    parser.add_argument('--folder', type=str)
+
+    parser.add_argument('--view', type=bool, default=False,
+                        help='View processing images')
+
+    args = parser.parse_args()
+
+    images_list: list = list()
+
+    if args.folder and args.image:
+        print("Você precisa escolher uma forma de acessar os arquivos")
+        print("Para imagens --images images.bmp")
+        print("Para pasta --folder images")
+        exit()
+
+    if args.folder:
+        images_list = []
+        [images_list.extend(glob.glob(args.folder + '*.' + e)) for e in ext]
+        images_list = glob.glob(f"{args.folder}/*.bmp")
+        # --folder images
+
+    if args.image:
+        images_list.append(args.image)
+        # --folder images
+
+    imdir = 'images/'
+    # Add image formats here
+
+    print(f"Lista de imagens {images_list}")
+    # main(view=args.view)
+    main(images_list=images_list)
