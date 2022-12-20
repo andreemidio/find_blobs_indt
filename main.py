@@ -60,7 +60,7 @@ def find_min_x_axis(centroids: List[Tuple[int, int]]) -> List[int]:
     return resultado
 
 
-def main():
+def main() -> None:
     file_image: str = "images/4x14x187.bmp"
     # file_image: str = "images/6x20x198.bmp"
     list_images: list = glob.glob("images/*.bmp")
