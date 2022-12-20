@@ -1,3 +1,4 @@
+import glob
 from typing import List, Tuple
 
 import cv2
@@ -23,13 +24,14 @@ def inverse(image: np.array) -> np.array:
     return cv2.bitwise_not(image)
 
 
-def draw_contours(image: np.array, contours, hierarchy):
+def draw_contours(image: np.array, contours):
     return cv2.drawContours(image, contours, -1, (0, 255, 75), 2)
 
 
 def moments(contours: str) -> np.array:
     centroids: list = list()
     for c in contours:
+        bbox = cv2.minAreaRect(c)
         M = cv2.moments(c)
 
         cX = int(M["m10"] / M["m00"])
@@ -44,8 +46,6 @@ def find_min_x_axis(centroids: List[Tuple[int, int]]):
     min_x_list: list = list()
 
     for c in centroids:
-        value = 0
-
         min_x_list.append(c[0])
 
     min_x_list.sort()
@@ -63,30 +63,40 @@ def find_min_x_axis(centroids: List[Tuple[int, int]]):
 if __name__ == '__main__':
     file_image: str = "images/4x14x187.bmp"
     # file_image: str = "images/6x20x198.bmp"
-    r = read_image(file=file_image)
-    ret, image_thresh = threshold(image=r)
 
-    i = inverse(image=image_thresh)
+    list_images: list = glob.glob("images/*.bmp")
 
-    contours, hierarchy = find_contours(image=i)
+    list_images.sort()
 
-    m = moments(contours=contours)
+    for file_image in list_images:
 
-    r_copy = r.copy()
+        r = read_image(file=file_image)
+        ret, image_thresh = threshold(image=r)
 
-    d = draw_contours(image=r_copy, contours=contours, hierarchy=hierarchy)
+        i = inverse(image=image_thresh)
 
-    f = find_min_x_axis(centroids=m)
+        contours, hierarchy = find_contours(image=i)
 
-    for row in m:
-        cv2.circle(d, row, 1, (0, 255, 0), 2)
+        m = moments(contours=contours)
 
-    print(f"Primeira linha há {len(contours[0])} contornos hachurados ")
+        r_copy = r.copy()
 
-    print(f"Primeira coluna  há {len(f)} contornos hachurados ")
+        d = draw_contours(image=r_copy, contours=contours)
 
-    print(f"Há um total de  {len(contours)} área hachuradas")
+        f = find_min_x_axis(centroids=m)
 
-    cv2.imshow("test", d)
-    cv2.imshow("not", i)
-    cv2.waitKey(0)
+        for row in m:
+            cv2.circle(d, row, 1, (0, 255, 0), 2)
+
+
+        print(f"Imagem {file_image}")
+
+        print(f"Primeira linha há {len(contours[0])} contornos hachurados ")
+
+        print(f"Primeira coluna  há {len(f)} contornos hachurados ")
+
+        print(f"Há um total de  {len(contours)} área hachuradas")
+
+        cv2.imshow("test", d)
+        cv2.imshow("not", i)
+        cv2.waitKey(0)
