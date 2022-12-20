@@ -1,34 +1,34 @@
 import glob
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
 
 
-def read_image(file: str) -> np.array:
+def read_image(file: str) -> np.ndarray:
     return cv2.imread(file)
 
 
-def threshold(image: np.array) -> np.array:
+def threshold(image: np.ndarray) -> List[Union[float, np.ndarray]]:
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
 
     return ret, thresh
 
 
-def find_contours(image: np.array) -> np.array:
+def find_contours(image: np.array) -> Tuple[np.ndarray]:
     return cv2.findContours(image=image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
 
 
-def inverse(image: np.array) -> np.array:
+def inverse(image: np.array) -> np.ndarray:
     return cv2.bitwise_not(image)
 
 
-def draw_contours(image: np.array, contours):
+def draw_contours(image: np.array, contours: Tuple[np.ndarray]) -> np.ndarray:
     return cv2.drawContours(image, contours, -1, (0, 255, 75), 2)
 
 
-def moments(contours: str) -> np.array:
+def moments(contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
     centroids: list = list()
     for c in contours:
         bbox = cv2.minAreaRect(c)
@@ -42,7 +42,7 @@ def moments(contours: str) -> np.array:
     return centroids
 
 
-def find_min_x_axis(centroids: List[Tuple[int, int]]):
+def find_min_x_axis(centroids: List[Tuple[int, int]]) -> List[int]:
     min_x_list: list = list()
 
     for c in centroids:
@@ -60,10 +60,9 @@ def find_min_x_axis(centroids: List[Tuple[int, int]]):
     return resultado
 
 
-if __name__ == '__main__':
+def main():
     file_image: str = "images/4x14x187.bmp"
     # file_image: str = "images/6x20x198.bmp"
-
     list_images: list = glob.glob("images/*.bmp")
 
     list_images.sort()
@@ -88,7 +87,6 @@ if __name__ == '__main__':
         for row in m:
             cv2.circle(d, row, 1, (0, 255, 0), 2)
 
-
         print(f"Imagem {file_image}")
 
         print(f"Primeira linha há {len(contours[0])} contornos hachurados ")
@@ -100,3 +98,7 @@ if __name__ == '__main__':
         cv2.imshow("test", d)
         cv2.imshow("not", i)
         cv2.waitKey(0)
+
+
+if __name__ == '__main__':
+    main()
