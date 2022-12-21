@@ -15,11 +15,9 @@ class ExtractOMR:
         return gray
 
     def _find_contours(self, image: np.array) -> Tuple[np.ndarray]:
-        contours = list()
+
         cnts, h = cv2.findContours(image=image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
 
-        for cnt in cnts:
-            contours.append(cv2.minAreaRect(cnt))
         return cnts
 
     def _inverse_image(self, image: np.array) -> np.ndarray:
