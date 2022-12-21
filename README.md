@@ -68,7 +68,7 @@ Para uma pasta que contenham imagens do mesmo formato:
 python main.py --folder images
 ``
 
-Após a execução, será criada uma pasta chamada resultados, contendo um arquivo json para cada imagem
+Após a execução, será criada uma pasta chamada ``resultados``, contendo um arquivo json para cada imagem
 
 Cada resultado tem o seguinte nome ``4x14x187_resultado_leitura``
 
