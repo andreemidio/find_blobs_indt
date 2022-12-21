@@ -1,7 +1,7 @@
 import glob
 import json
 import os
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -10,13 +10,9 @@ import numpy as np
 class ExtractOMR:
 
     def read_image(self, file: str) -> np.ndarray:
-        return cv2.imread(file)
 
-    def threshold(self, image: np.ndarray) -> List[Union[float, np.ndarray]]:
-        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
-
-        return ret, thresh
+        gray = cv2.cvtColor(cv2.imread(file), cv2.COLOR_BGR2GRAY)
+        return gray
 
     def find_contours(self, image: np.array) -> Tuple[np.ndarray]:
         contours = list()
@@ -35,27 +31,20 @@ class ExtractOMR:
 
     def moments(self, contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
         centroids: list = list()
-        area_list = list()
+
         for c in contours:
 
             area = cv2.contourArea(c)
 
-            area_list.append(area)
+            x, y, w, h = cv2.boundingRect(c)
 
-            bbox = cv2.minAreaRect(c)
-
-            # if bbox[1][0] == 10.0 and bbox[1][1] == 21:
-            if area == 210.0 :
+            if h == 11 and w == 22 and area == 210.0:
                 M = cv2.moments(c)
 
                 cX = int(M["m10"] / M["m00"])
                 cY = int(M["m01"] / M["m00"])
 
                 centroids.append((cX, cY))
-
-        area_list.sort()
-
-        print(area_list)
 
         return centroids
 
@@ -76,49 +65,61 @@ class ExtractOMR:
 
         return resultado
 
-    def external(self, image: np.ndarray):
-        return cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    def find_min_y_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
+        min_x_list: list = list()
+
+        for c in centroids:
+            min_x_list.append(c[1])
+
+        min_x_list.sort()
+        min_value = min(min_x_list)
+
+        resultado = list()
+        for m in min_x_list:
+
+            if m == min_value:
+                resultado.append(m)
+
+        return resultado
 
     def run(self, images_list: List[str], view: bool = False) -> None:
         images_list.sort()
 
         for file_image in images_list:
 
-            r = self.read_image(file=file_image)
-            ret, image_thresh = self.threshold(image=r)
+            read_image = self.read_image(file=file_image)
 
-            # ccccc, _ = self.external(image=r)
+            inversed_image = self.inverse(image=read_image)
 
-            i = self.inverse(image=image_thresh)
+            contours = self.find_contours(image=inversed_image)
 
-            contours = self.find_contours(image=i)
+            moments_image = self.moments(contours=contours)
 
-            m = self.moments(contours=contours)
+            r_copy = inversed_image.copy()
 
-            r_copy = i.copy()
+            draw_contours_image = self.draw_contours(image=r_copy, contours=contours)
 
-            d = self.draw_contours(image=r_copy, contours=contours)
+            value_find_min_x_axis = self.find_min_x_axis(centroids=moments_image)
+            value_find_min_y_axis = self.find_min_y_axis(centroids=moments_image)
 
-            f = self.find_min_x_axis(centroids=m)
-
-            for row in m:
-                cv2.circle(d, row, 1, (0, 255, 0), 2)
+            for row in moments_image:
+                cv2.circle(draw_contours_image, row, 1, (0, 255, 0), 2)
 
             resultado_object = dict(
                 file_name=file_image,
-                first_line=len(contours[0]),
-                first_column=len(f),
-                total=len(contours)
+                first_line=len(value_find_min_y_axis),
+                first_column=len(value_find_min_x_axis),
+                total=len(moments_image)
             )
             image_name = file_image.split("/")[-1].split(".")[-2]
 
             with open(f"resultados/{image_name}_resultado_leitura.json", "w",
-                      encoding='utf-8') as f:
-                json.dump(resultado_object, f, ensure_ascii=False, indent=4)
+                      encoding='utf-8') as value_find_min_x_axis:
+                json.dump(resultado_object, value_find_min_x_axis, ensure_ascii=False, indent=4)
 
             if view:
-                cv2.imshow("test", d)
-                cv2.imshow("not", i)
+                cv2.imshow("Contornos", draw_contours_image)
+                cv2.imshow("not", inversed_image)
                 cv2.waitKey(0)
 
 

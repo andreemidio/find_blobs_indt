@@ -15,25 +15,42 @@ Ideia do algoritmo para esse desafio e essas caracteristicas de imagens.
 
 Ok, vamos a explicação do passo passo como eu pensei nesse algoritmo, tentando ser o mais simples possível.
 
-1. A primeira coisa que fiz foi colocar as imagens em preto e branco, elas já estão sim, mas por garantia prefiri fazer
-   essa passagem novamente nesse filtros
-2. Eu prefiri fazer um ``bitwise_not``, para inverter as cores da imagem, sendo onde é branco, se torna preto e
-   vice-versa.
+1. A primeira coisa que fiz foi ler a imagem e já colocar em escalas de cinza;
+2. Usando a imagem em escala de cinza utilizei ``bitwise_not``, para inverter as cores da imagem, sendo onde é branco,
+   se torna preto e
+   vice-versa;
 3. tendo a imagem dessa forma, eu consigo buscar todos os contornos da imagem , removendo o contorno mais externo de
-   forma mais simples.
-4. eu tendo os contornos consigo fazer mensuração de todos os contornos, ou seja, resolvo o passo 3 do desafio.
-5. e eu também consigo fazer um slice para a primeira linha , consigo também a quantidade de hachuras na primeira linha,
-   resolvendo o passo 1
-6. Só que o mais complexo e mais importante é descobrir os valores da primeira coluna, para isso eu fiz os passos a
-   seguir
-4. ok, eu tenho os contornos, agora eu vou definir os centroides de cada retangulo com a função ``moments` e crio uma
-   lista com todas as posições dos centroides
-5. tendo os valores dos centroids, eu posso simplesmente ordenar os valores do eixo ``X`` de todos pontos e dessa forma
-   consigo salvar numa váriavel esses valores minimos e saber quantos foram hachurados na primeira coluna
+   forma mais simples;
+4. Agora eu busco todos os contornos, e limito clado na altura, largura e area, para que eu tenha apenas as hachuras;
+5. Ok, eu tenho os contornos, agora eu vou definir os centroides de cada retangulo com a função ``moments` e crio uma
+   lista com todas as posições dos centroides das hachuras;
+6. Com os centroides eu consigo mensurar os valores da primeira linha e também da primeira coluna
+7. E usando a mesma ideia, eu tenho também os contornos totais, terminando assim o processo solicitado no desafio.
+
+### Melhorias que eu faria se eu tivesse mais tempo
+
+1. Eu enxergo que a solução que fiz ela é limitada, pois se eu precisar fazer buscas mais complexas, isso se tornará um
+   problema;
+2. O que eu faria com mais tempo de desenvolvimento, eu criaria uma mapa para o papel que eu preciso ler, essa ideia eu
+   retiro de um projeto que acompanho há 4 anos;
+3. O link do projeto é https://github.com/Udayraj123/OMRChecker;
+4. Como a leitura de testes de vestibular da India é bem caótica, e um volante de loteria também pode ser, criar um
+   sistema que possa receber um mapa e já se atualizar automaticamente é uma saída que pode ser interessante ao invés de
+   fixar o mapa no código.
 
 # Como usar o algoritmo
 
 ## Para executar é necessário rodar o seguinte comando
+
+É interessante criar um virtualenv para rodar o projeto.
+
+[Virtualenv](https://docs.python.org/3/library/venv.html)
+
+Para instalar as depedências
+
+``
+python -m pip install -r requirements.txt
+``
 
 Para uma imagem apenas
 
@@ -65,3 +82,9 @@ Para uma pasta que contenham imagens do mesmo formato:
 python main.py --folder images --view true
 ``
 
+
+## Algumas definições de software que tomei
+
+
+Decidi criar uma classe que contenha todos os metodos para os processos funcionarem de formas mais isoladas.
+Para que o algorimo seja funcional, há um metodo apenas para execução que é o ``run`` dai em diante todo o processo é feito automaticamente.
