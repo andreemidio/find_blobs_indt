@@ -581,3 +581,5 @@ modules.xml
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm+all,pycharm+iml,pycharm,django,flask
 
 /resultados
+
+teste.py

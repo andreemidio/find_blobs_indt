@@ -1,107 +1,125 @@
 import glob
 import json
 import os
-from datetime import datetime
 from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
 
 
-def read_image(file: str) -> np.ndarray:
-    return cv2.imread(file)
+class ExtractOMR:
 
+    def read_image(self, file: str) -> np.ndarray:
+        return cv2.imread(file)
 
-def threshold(image: np.ndarray) -> List[Union[float, np.ndarray]]:
-    img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
+    def threshold(self, image: np.ndarray) -> List[Union[float, np.ndarray]]:
+        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
 
-    return ret, thresh
+        return ret, thresh
 
+    def find_contours(self, image: np.array) -> Tuple[np.ndarray]:
+        contours = list()
+        cnts, h = cv2.findContours(image=image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
 
-def find_contours(image: np.array) -> Tuple[np.ndarray]:
-    return cv2.findContours(image=image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in cnts:
+            contours.append(cv2.minAreaRect(cnt))
+        return cnts
 
+    def inverse(self, image: np.array) -> np.ndarray:
+        return cv2.bitwise_not(image)
 
-def inverse(image: np.array) -> np.ndarray:
-    return cv2.bitwise_not(image)
+    def draw_contours(self, image: np.array, contours: Tuple[np.ndarray]) -> np.ndarray:
+        return cv2.drawContours(image=image, contours=contours, contourIdx=-1, color=(0, 255, 75), thickness=2,
+                                lineType=cv2.LINE_AA)
 
+    def moments(self, contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
+        centroids: list = list()
+        area_list = list()
+        for c in contours:
 
-def draw_contours(image: np.array, contours: Tuple[np.ndarray]) -> np.ndarray:
-    return cv2.drawContours(image, contours, -1, (0, 255, 75), 2)
+            area = cv2.contourArea(c)
 
+            area_list.append(area)
 
-def moments(contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
-    centroids: list = list()
-    for c in contours:
-        bbox = cv2.minAreaRect(c)
-        M = cv2.moments(c)
+            bbox = cv2.minAreaRect(c)
 
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
+            # if bbox[1][0] == 10.0 and bbox[1][1] == 21:
+            if area == 210.0 :
+                M = cv2.moments(c)
 
-        centroids.append((cX, cY))
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
 
-    return centroids
+                centroids.append((cX, cY))
 
+        area_list.sort()
 
-def find_min_x_axis(centroids: List[Tuple[int, int]]) -> List[int]:
-    min_x_list: list = list()
+        print(area_list)
 
-    for c in centroids:
-        min_x_list.append(c[0])
+        return centroids
 
-    min_x_list.sort()
-    min_value = min(min_x_list)
+    def find_min_x_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
+        min_x_list: list = list()
 
-    resultado = list()
-    for m in min_x_list:
+        for c in centroids:
+            min_x_list.append(c[0])
 
-        if m == min_value:
-            resultado.append(m)
+        min_x_list.sort()
+        min_value = min(min_x_list)
 
-    return resultado
+        resultado = list()
+        for m in min_x_list:
 
+            if m == min_value:
+                resultado.append(m)
 
-def main(images_list: List[str], view: bool = False) -> None:
-    images_list.sort()
+        return resultado
 
-    for file_image in images_list:
+    def external(self, image: np.ndarray):
+        return cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        r = read_image(file=file_image)
-        ret, image_thresh = threshold(image=r)
+    def run(self, images_list: List[str], view: bool = False) -> None:
+        images_list.sort()
 
-        i = inverse(image=image_thresh)
+        for file_image in images_list:
 
-        contours, hierarchy = find_contours(image=i)
+            r = self.read_image(file=file_image)
+            ret, image_thresh = self.threshold(image=r)
 
-        m = moments(contours=contours)
+            # ccccc, _ = self.external(image=r)
 
-        r_copy = r.copy()
+            i = self.inverse(image=image_thresh)
 
-        d = draw_contours(image=r_copy, contours=contours)
+            contours = self.find_contours(image=i)
 
-        f = find_min_x_axis(centroids=m)
+            m = self.moments(contours=contours)
 
-        for row in m:
-            cv2.circle(d, row, 1, (0, 255, 0), 2)
+            r_copy = i.copy()
 
-        resultado_object = dict(
-            file_name=file_image,
-            first_line=len(contours[0]),
-            first_column=len(f),
-            total=len(contours)
-        )
-        image_name = file_image.split("/")[-1].split(".")[-2]
-        datetime_value = datetime.now().strftime("%d_%m_%y_%H_%M_%S")
-        with open(f"resultados/{image_name}_resultado_leitura_{datetime_value}.json", "w",
-                  encoding='utf-8') as f:
-            json.dump(resultado_object, f, ensure_ascii=False, indent=4)
+            d = self.draw_contours(image=r_copy, contours=contours)
 
-        if view:
-            cv2.imshow("test", d)
-            cv2.imshow("not", i)
-            cv2.waitKey(0)
+            f = self.find_min_x_axis(centroids=m)
+
+            for row in m:
+                cv2.circle(d, row, 1, (0, 255, 0), 2)
+
+            resultado_object = dict(
+                file_name=file_image,
+                first_line=len(contours[0]),
+                first_column=len(f),
+                total=len(contours)
+            )
+            image_name = file_image.split("/")[-1].split(".")[-2]
+
+            with open(f"resultados/{image_name}_resultado_leitura.json", "w",
+                      encoding='utf-8') as f:
+                json.dump(resultado_object, f, ensure_ascii=False, indent=4)
+
+            if view:
+                cv2.imshow("test", d)
+                cv2.imshow("not", i)
+                cv2.waitKey(0)
 
 
 if __name__ == '__main__':
@@ -109,19 +127,17 @@ if __name__ == '__main__':
 
     ext = ['png', 'jpg', 'gif', 'bmp']
 
-    if not os.path.exists("resultados") :
+    if not os.path.exists("resultados"):
         os.mkdir("resultados")
-
 
     parser = argparse.ArgumentParser(description='OMR Images')
 
     parser.add_argument('--image', type=str)
     parser.add_argument('--folder', type=str)
-
-    parser.add_argument('--view', type=bool, default=False,
-                        help='View processing images')
-
+    parser.add_argument('--view', type=str, default='false')
     args = parser.parse_args()
+
+    _view = eval(args.view.title())
 
     images_list: list = list()
 
@@ -139,11 +155,9 @@ if __name__ == '__main__':
 
     if args.image:
         images_list.append(args.image)
-        # --folder images
-
-    imdir = 'images/'
-    # Add image formats here
+        # --image images/4x14x187.bmp
 
     print(f"Lista de imagens {images_list}")
-    # main(view=args.view)
-    main(images_list=images_list)
+
+    extract = ExtractOMR()
+    extract.run(images_list=images_list, view=_view)
