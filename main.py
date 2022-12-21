@@ -80,6 +80,20 @@ class ExtractOMR:
 
         return resultado
 
+    def _save_results(self, file_name: str, first_line: int, first_column: int, total: int):
+        resultado_object = dict(
+            file_name=file_name,
+            first_line=first_line,
+            first_column=first_column,
+            total=total
+        )
+
+        image_name = file_name.split("/")[-1].split(".")[-2]
+
+        with open(f"resultados/{image_name}_resultado_leitura.json", "w",
+                  encoding='utf-8') as value_find_min_x_axis:
+            json.dump(resultado_object, value_find_min_x_axis, ensure_ascii=False, indent=4)
+
     def run(self, images_list: List[str], view: bool = False) -> None:
         images_list.sort()
 
@@ -100,20 +114,11 @@ class ExtractOMR:
             value_find_min_x_axis = self._find_min_x_axis(centroids=moments_image)
             value_find_min_y_axis = self._find_min_y_axis(centroids=moments_image)
 
-            for row in moments_image:
-                cv2.circle(draw_contours_image, row, 1, (0, 255, 0), 2)
-
-            resultado_object = dict(
-                file_name=file_image,
-                first_line=len(value_find_min_y_axis),
-                first_column=len(value_find_min_x_axis),
-                total=len(moments_image)
-            )
-            image_name = file_image.split("/")[-1].split(".")[-2]
-
-            with open(f"resultados/{image_name}_resultado_leitura.json", "w",
-                      encoding='utf-8') as value_find_min_x_axis:
-                json.dump(resultado_object, value_find_min_x_axis, ensure_ascii=False, indent=4)
+            self._save_results(file_name=file_image,
+                               first_line=len(value_find_min_y_axis),
+                               first_column=len(value_find_min_x_axis),
+                               total=len(moments_image)
+                               )
 
             if view:
                 cv2.imshow("Contornos", draw_contours_image)
