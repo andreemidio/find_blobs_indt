@@ -72,7 +72,7 @@ Após a execução, será criada uma pasta chamada ``resultados``, contendo um a
 
 Cada resultado tem o seguinte nome ``4x14x187_resultado_leitura``
 
-Se quiser ver o processo acontecendo e visualizar a imagem sendo processa é só adicionar o comando --view
+Se quiser ver o processo acontecendo e visualizar a imagem sendo processa é só adicionar o comando ``--view``
 
 Para uma imagem apenas
 
