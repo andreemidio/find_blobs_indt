@@ -9,12 +9,12 @@ import numpy as np
 
 class ExtractOMR:
 
-    def read_image(self, file: str) -> np.ndarray:
+    def _read_image(self, file: str) -> np.ndarray:
 
         gray = cv2.cvtColor(cv2.imread(file), cv2.COLOR_BGR2GRAY)
         return gray
 
-    def find_contours(self, image: np.array) -> Tuple[np.ndarray]:
+    def _find_contours(self, image: np.array) -> Tuple[np.ndarray]:
         contours = list()
         cnts, h = cv2.findContours(image=image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
 
@@ -22,14 +22,14 @@ class ExtractOMR:
             contours.append(cv2.minAreaRect(cnt))
         return cnts
 
-    def inverse(self, image: np.array) -> np.ndarray:
+    def _inverse_image(self, image: np.array) -> np.ndarray:
         return cv2.bitwise_not(image)
 
-    def draw_contours(self, image: np.array, contours: Tuple[np.ndarray]) -> np.ndarray:
+    def _draw_contours(self, image: np.array, contours: Tuple[np.ndarray]) -> np.ndarray:
         return cv2.drawContours(image=image, contours=contours, contourIdx=-1, color=(0, 255, 75), thickness=2,
                                 lineType=cv2.LINE_AA)
 
-    def moments(self, contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
+    def _find_moments(self, contours: Tuple[np.ndarray]) -> List[Tuple[int, int]]:
         centroids: list = list()
 
         for c in contours:
@@ -48,7 +48,7 @@ class ExtractOMR:
 
         return centroids
 
-    def find_min_x_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
+    def _find_min_x_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
         min_x_list: list = list()
 
         for c in centroids:
@@ -65,7 +65,7 @@ class ExtractOMR:
 
         return resultado
 
-    def find_min_y_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
+    def _find_min_y_axis(self, centroids: List[Tuple[int, int]]) -> List[int]:
         min_x_list: list = list()
 
         for c in centroids:
@@ -87,20 +87,20 @@ class ExtractOMR:
 
         for file_image in images_list:
 
-            read_image = self.read_image(file=file_image)
+            read_image = self._read_image(file=file_image)
 
-            inversed_image = self.inverse(image=read_image)
+            inversed_image = self._inverse_image(image=read_image)
 
-            contours = self.find_contours(image=inversed_image)
+            contours = self._find_contours(image=inversed_image)
 
-            moments_image = self.moments(contours=contours)
+            moments_image = self._find_moments(contours=contours)
 
             r_copy = inversed_image.copy()
 
-            draw_contours_image = self.draw_contours(image=r_copy, contours=contours)
+            draw_contours_image = self._draw_contours(image=r_copy, contours=contours)
 
-            value_find_min_x_axis = self.find_min_x_axis(centroids=moments_image)
-            value_find_min_y_axis = self.find_min_y_axis(centroids=moments_image)
+            value_find_min_x_axis = self._find_min_x_axis(centroids=moments_image)
+            value_find_min_y_axis = self._find_min_y_axis(centroids=moments_image)
 
             for row in moments_image:
                 cv2.circle(draw_contours_image, row, 1, (0, 255, 0), 2)
