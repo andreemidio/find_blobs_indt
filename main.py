@@ -93,9 +93,9 @@ class ExtractOMR:
 
             moments_image = self._find_moments(contours=contours)
 
-            r_copy = inversed_image.copy()
+            inversed_image_copy = inversed_image.copy()
 
-            draw_contours_image = self._draw_contours(image=r_copy, contours=contours)
+            draw_contours_image = self._draw_contours(image=inversed_image_copy, contours=contours)
 
             value_find_min_x_axis = self._find_min_x_axis(centroids=moments_image)
             value_find_min_y_axis = self._find_min_y_axis(centroids=moments_image)
