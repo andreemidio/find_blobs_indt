@@ -1,4 +1,4 @@
-# Desafio de detecção de retanguloes hachurados em uma imagem INDT
+# Desafio de detecção de retângulos hachurados em uma imagem INDT
 
 ### Descrição do Desafio
 
@@ -10,16 +10,20 @@ Desenvolva uma aplicação que dada uma imagem com marcações (ver arquivos de 
 
     3. O número de marcações na imagem
 
-AS imagens para testes estão contidas na pasta ``images`` <br>
+
+### Processo de desenvolvimento
+
+As imagens para testes estão contidas na pasta ``images``
+
 Ideia do algoritmo para esse desafio e essas caracteristicas de imagens.
 
-Ok, vamos a explicação do passo passo como eu pensei nesse algoritmo, tentando ser o mais simples possível.
+Ok, vamos a explicação do passo a passo como eu pensei nesse algoritmo, tentando ser o mais simples possível.
 
 1. A primeira coisa que fiz foi ler a imagem e já colocar em escalas de cinza;
 2. Usando a imagem em escala de cinza utilizei ``bitwise_not``, para inverter as cores da imagem, sendo onde é branco,
    se torna preto e
    vice-versa;
-3. tendo a imagem dessa forma, eu consigo buscar todos os contornos da imagem , removendo o contorno mais externo de
+3. tendo a imagem dessa forma, eu consigo buscar todos os contornos da imagem, removendo o contorno mais externo de
    forma mais simples;
 4. Agora eu busco todos os contornos, e limito clado na altura, largura e area, para que eu tenha apenas as hachuras;
 5. Ok, eu tenho os contornos, agora eu vou definir os centroides de cada retangulo com a função ``moments` e crio uma
